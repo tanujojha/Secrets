@@ -1,10 +1,9 @@
 
-require("dotenv").config();
 const express = require('express');
 const ejs = require('ejs');
 const mongoose = require('mongoose');
 const bodyparser = require('body-parser');
-const encrypt = require('mongoose-encryption');
+const md5 = require('md5');
 
 const app = express();
 
@@ -18,10 +17,6 @@ const userSchema = new mongoose.Schema({
   username: String,
   password: String
 });
-
-console.log(process.env.SECRET);
-userSchema.plugin(encrypt, { secret: process.env.SECRET, encryptedFields: ['password'] });    //updating the existing schema using the encrypt keyword and using the encryptedFields to only encrypt certain fields
-
 const User = mongoose.model("User", userSchema);
 
 
@@ -38,7 +33,7 @@ app.post("/register", function(req,res){
   // console.log(req.body.username, req.body.password);
   const newUser = new User({
     username: req.body.username,
-    password: req.body.password
+    password: md5(req.body.password)    //hashing the pass while saving it in db
   });
   newUser.save(function(err){
     if(!err){
@@ -55,14 +50,13 @@ app.get("/login", function(req,res){
 });
 
 app.post("/login", function(req,res){
-  // console.log(req.body.username, req.body.password);
-  User.findOne({username: req.body.username}, function(err, founduser){
-    // console.log(founduser.password);         //it decrypts the password during the find; this logs the decrypted password
+
+  User.findOne({username: req.body.username}, function(err, founduser){    //comparing the hashed pass
     if(err){
       console.log(err);
     }else{
       if(founduser){
-        if(founduser.password === req.body.password){
+        if(founduser.password === md5(req.body.password)){
           res.render("secrets");
         }
       }
