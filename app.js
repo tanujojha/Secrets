@@ -1,4 +1,5 @@
 
+require("dotenv").config();
 const express = require('express');
 const ejs = require('ejs');
 const mongoose = require('mongoose');
@@ -18,9 +19,8 @@ const userSchema = new mongoose.Schema({
   password: String
 });
 
-var secret = "thisstringwillbeusedasakey";    //a secrete key to be used for encryption
-
-userSchema.plugin(encrypt, { secret: secret, encryptedFields: ['password'] });    //updating the existing schema using the encrypt keyword and using the encryptedFields to only encrypt certain fields
+console.log(process.env.SECRET);
+userSchema.plugin(encrypt, { secret: process.env.SECRET, encryptedFields: ['password'] });    //updating the existing schema using the encrypt keyword and using the encryptedFields to only encrypt certain fields
 
 const User = mongoose.model("User", userSchema);
 
